@@ -1,0 +1,16 @@
+Manu-S1
+Copyright 2026 Sankhya AI Labs
+
+Manu-S1 is Tura-S1-4B with one further LoRA merged into its weights. It includes model weights, software and data
+developed by others:
+
+- Tura-S1-4B (starting weights), huggingface.co/AshishDwi99/tura-s1-4b, Apache License 2.0: Plumb-4B with a LoRA
+  trained on decision data including a tutoring product's own agent decisions (personal data removed).
+- Plumb-4B, by Christopher House (github.com/crh225/plumb), Apache License 2.0. Its notice is kept in NOTICE-plumb.
+- JevK5 v0.2 (Plumb's starting weights, the training script and the runtime), by the JevK5 authors
+  (github.com/allebee, huggingface.co/alibiserikbay), Apache License 2.0. Its notice is kept in NOTICE-jevk5.
+- Qwen3.5-4B (base weights), by the Qwen team, Apache License 2.0.
+- The decision prompt and one-pass readout, adapted by JevK5 from SemIf by TheoLeeCJ, MIT License.
+- Training data from "Indian High Court Judgments" (Registry of Open Data on AWS, managed by Dattam Labs),
+  Creative Commons Attribution 4.0 International: judgments and orders of Indian High Courts and their metadata.
+- Teacher labels from gpt-oss-120b (OpenAI, Apache License 2.0), run on our own compute.
