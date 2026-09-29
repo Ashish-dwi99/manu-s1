@@ -1,0 +1,215 @@
+# DOC: what a page or a document is. The foundation: every other family needs to know which document it is
+# reading, where it starts and ends, and whether the text can be trusted. Labels come mostly from the court's
+# own indexing of e-filed and digitised records (cis) and from page-level teacher questions.
+
+- id: DOC.TYP.01
+  name: civil_document_type
+  type: choice
+  question: What kind of document is this, in a civil proceeding?
+  labels:
+    plaint: A plaint instituting a suit
+    written_statement: A written statement or counter-claim by a defendant
+    replication: A replication or rejoinder to a written statement
+    petition: A petition (writ, civil miscellaneous, family, company, insolvency, arbitration)
+    counter_affidavit: A counter or reply affidavit to a petition
+    interlocutory_application: An interlocutory or miscellaneous application within a case
+    affidavit: A stand-alone affidavit (evidence, service, compliance, undertaking)
+    vakalatnama: A vakalatnama or memo of appearance
+    order_sheet: A proceedings or order sheet (daily orders)
+    order: An interim or final order other than a judgment
+    judgment: A judgment or decree
+    memo_of_appeal: A memorandum of appeal, revision or review
+    process_report: A process server's or postal report on service of summons or notice
+    exhibit_or_annexure: An exhibit, annexure or document relied on
+    index_or_list: An index, list of dates, list of documents or synopsis
+    other: Some other court document
+    cannot_tell: The page does not show what document it belongs to
+  inputs: [page_text]
+  law: ["Code of Civil Procedure 1908", "High Court rules on e-filing"]
+  labels_from: [cis, teacher, gold]
+  evidence: optional
+  tier: court_admin
+  notes: Over 16 labels; served in passes (JevK5 knockout) exactly as a large tool catalogue is.
+
+- id: DOC.TYP.02
+  name: criminal_document_type
+  type: choice
+  question: What kind of document is this, in a criminal proceeding?
+  labels:
+    fir: A first information report
+    police_report: A police report on completion of investigation (chargesheet or closure report)
+    complaint: A private complaint to a magistrate
+    bail_application: An application for bail or anticipatory bail
+    order_sheet: A proceedings or order sheet
+    charge: A charge framed against an accused
+    deposition: A deposition or witness statement recorded in court
+    accused_statement: A statement of the accused recorded by the court
+    order: An interim or final order other than a judgment
+    judgment: A judgment of conviction or acquittal
+    memo_of_appeal: A memorandum of appeal or revision
+    medical_or_forensic_report: A medical, post-mortem or forensic report
+    seizure_or_panchnama: A seizure memo, panchnama or recovery memo
+    process_report: A report on service of summons or execution of a warrant
+    other: Some other court document
+    cannot_tell: The page does not show what document it belongs to
+  inputs: [page_text]
+  law: ["Bharatiya Nagarik Suraksha Sanhita 2023", "Code of Criminal Procedure 1973 (proceedings saved by s.531 BNSS)"]
+  labels_from: [cis, teacher, gold]
+  evidence: optional
+  tier: court_admin
+
+- id: DOC.SEG.01
+  name: document_starts_on_page
+  type: choice
+  question: Does a new document begin on this page, given the page before it?
+  labels:
+    new_document: This page starts a new document
+    continues: This page continues the document on the previous page
+    cannot_tell: The pages do not show whether a new document begins
+  inputs: [previous_page_text, page_text]
+  labels_from: [cis, teacher, gold]
+  evidence: optional
+  tier: court_admin
+  notes: Splits a scanned bundle into documents; run on every page of legacy digitisation.
+
+- id: DOC.SEG.02
+  name: page_sequence_intact
+  type: choice
+  question: Does this page follow the previous page in order, with nothing missing between them?
+  labels:
+    in_order: The text and page numbers run on without a gap
+    page_missing: A page appears to be missing between them
+    out_of_order: The pages appear to be in the wrong order
+    duplicate: This page repeats the previous page
+    cannot_tell: The pages do not show whether the sequence is intact
+  inputs: [previous_page_text, page_text]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: DOC.QLT.01
+  name: page_legibility
+  type: score
+  question: How much of this page's text can be relied on?
+  labels:
+    - "0: unreadable: the scan or OCR gives no usable text"
+    - "1: poor: key words, names, numbers or dates are unreadable"
+    - "2: fair: readable, with isolated errors that do not change names, numbers or dates"
+    - "3: good: fully readable"
+  inputs: [page_text, ocr_confidence]
+  labels_from: [rule, gold]
+  evidence: optional
+  tier: court_admin
+  notes: A page scored 0 or 1 makes every decision that relies on it cannot_tell. Score type, so no cannot_tell level.
+
+- id: DOC.QLT.02
+  name: document_language
+  type: choice
+  question: In which language is the body of this document written?
+  labels:
+    english: English
+    hindi: Hindi
+    marathi: Marathi
+    gujarati: Gujarati
+    bengali: Bengali
+    tamil: Tamil
+    telugu: Telugu
+    kannada: Kannada
+    malayalam: Malayalam
+    odia: Odia
+    punjabi: Punjabi
+    urdu: Urdu
+    assamese: Assamese
+    mixed: Substantially mixed (two or more languages in the body)
+    other: Another language
+    cannot_tell: The text is too short or unreadable to tell
+  inputs: [page_text]
+  labels_from: [rule, gold]
+  evidence: optional
+  tier: court_admin
+
+- id: DOC.AUT.01
+  name: document_signed
+  type: choice
+  question: Is this document signed by the person who must sign it?
+  labels:
+    signed: A signature (or digital signature) of the required signatory appears
+    unsigned: The signature block is present but not signed
+    no_signature_block: The document has no place for a signature
+    cannot_tell: The page does not show the signature area or it is unreadable
+  inputs: [document_text, signature_detections]
+  law: ["CPC Order VI rule 14 (pleadings signed by party and pleader)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: DOC.AUT.02
+  name: certified_copy
+  type: choice
+  question: Is this a certified copy issued by a court?
+  labels:
+    certified: It bears a copying section's certification (endorsement, stamp or digital certification)
+    uncertified: It is a plain, photocopied or downloaded copy
+    cannot_tell: The certification area is not visible or unreadable
+  inputs: [document_text]
+  law: ["Bharatiya Sakshya Adhiniyam 2023 (certified copies of public documents)", "Limitation Act 1963 s.12 (time for obtaining copies)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: DOC.REF.01
+  name: annexure_referenced_present
+  type: choice
+  question: Is the annexure or exhibit this paragraph refers to actually included in the filing?
+  labels:
+    present: A document matching the reference is in the filing
+    missing: The reference names an annexure that is not in the filing
+    cannot_tell: The filing's index or pages do not show whether it is included
+  inputs: [paragraph_text, filing_index, annexure_titles]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: DOC.REF.02
+  name: index_matches_contents
+  type: choice
+  question: Does the index of this filing match the documents and page numbers actually in it?
+  labels:
+    matches: Every indexed item is present at the stated pages
+    minor_mismatch: Page numbers differ but every item is present
+    item_missing: An indexed item is absent
+    cannot_tell: The index or the pages are not readable enough to compare
+  inputs: [filing_index, document_boundaries]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: DOC.ID.01
+  name: case_identity_matches_record
+  type: choice
+  question: Does this document belong to the case it is filed in (case number, parties and court)?
+  labels:
+    matches: The case number, court and parties on the document match the case record
+    different_case: The document names a different case number or different parties
+    partly_matches: Some identifiers match and others do not
+    cannot_tell: The document does not carry enough identifiers to compare
+  inputs: [document_text, case_record]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: Catches misfiled documents in digitised bundles, the most common and costliest indexing error.
+
+- id: DOC.ID.02
+  name: vernacular_needs_translation
+  type: choice
+  question: Does this document need a translation filed with it under the court's language rules?
+  labels:
+    needs_translation: It is in a language other than the court's language and no translation accompanies it
+    translation_filed: A translation accompanies it
+    not_needed: It is already in the court's language
+    cannot_tell: The court's language rule or the document's language cannot be determined
+  inputs: [document_language, court_language_rule, filing_index]
+  law: ["CPC s.137 (language of subordinate courts)", "High Court rules on translations"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin

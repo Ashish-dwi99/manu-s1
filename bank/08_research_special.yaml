@@ -1,0 +1,190 @@
+# RSR: legal research over judgments, a lead for a person to verify. SPL: special jurisdictions whose threshold
+# and date rules the registry applies every day.
+
+- id: RSR.TRT.01
+  name: precedent_treatment
+  type: choice
+  question: How does the citing judgment treat the precedent it cites in this passage?
+  labels:
+    followed: Follows or applies it
+    distinguished: Distinguishes it on facts or law
+    overruled: Overrules it (by a bench competent to do so)
+    doubted_or_referred: Doubts it or refers it to a larger bench
+    explained: Explains or clarifies it
+    referred_only: Mentions it without applying or rejecting it
+    cannot_tell: The passage does not show the treatment
+  inputs: [citing_passage, cited_case_name]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: research
+  notes: Built across every citation in the open judgment corpora, this is the citator Indian law lacks.
+
+- id: RSR.CIT.01
+  name: citation_supports_quote
+  type: choice
+  question: Does the cited judgment actually contain the proposition or quotation attributed to it?
+  labels:
+    verbatim_present: The quoted words appear in the cited judgment
+    proposition_present: The proposition is stated there, in other words
+    not_found: The judgment does not contain it
+    wrong_judgment: The citation points to a different judgment than the one named
+    cannot_tell: The cited judgment is not available to check
+  inputs: [attributed_text, citation, retrieved_judgment_paragraphs]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: research
+  notes: The check that stops fabricated citations, from any source, reaching a court. The pointer must name the supporting paragraph or the answer is not_found.
+
+- id: RSR.BNC.01
+  name: bench_strength_binding
+  type: choice
+  question: Is the precedent binding on the court deciding this matter, by the court and bench that decided it?
+  labels:
+    binding: Decided by the Supreme Court, or by a coordinate or larger bench of the same High Court
+    persuasive_other_high_court: Decided by another High Court (persuasive)
+    persuasive_smaller_bench: Decided by a smaller bench of the same High Court than the one now sitting (binding on smaller benches only)
+    cannot_tell: The deciding court or bench strength is not available
+  inputs: [precedent_metadata, current_bench]
+  law: ["Constitution art. 141", "Doctrine of precedent"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: research
+  verify: true
+
+- id: RSR.STA.01
+  name: statute_provision_cited
+  type: choice
+  question: Which statute is the provision cited in this passage from?
+  labels:
+    constitution: The Constitution of India
+    cpc: Code of Civil Procedure 1908
+    crpc_or_bnss: Code of Criminal Procedure 1973 or BNSS 2023
+    ipc_or_bns: Indian Penal Code 1860 or BNS 2023
+    evidence_act_or_bsa: Indian Evidence Act 1872 or BSA 2023
+    limitation_act: Limitation Act 1963
+    ni_act: Negotiable Instruments Act 1881
+    arbitration_act: Arbitration and Conciliation Act 1996
+    other_statute: Another statute
+    cannot_tell: The passage does not name the statute
+  inputs: [passage]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: research
+
+- id: SPL.CON.01
+  name: consumer_commission_tier
+  type: choice
+  question: Which consumer commission has pecuniary jurisdiction over the consideration paid?
+  labels:
+    district: District Commission
+    state: State Commission
+    national: National Commission
+    cannot_tell: The consideration paid is not in the record
+  inputs: [complaint, consideration_paid]
+  calculator: thresholds
+  law: ["Consumer Protection Act 2019 ss.34, 47, 58", "Consumer Protection (Jurisdiction of the District Commission, the State Commission and the National Commission) Rules 2021"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: The tier limits live in the thresholds table, versioned by date, so a change of rules is a table edit.
+
+- id: SPL.CON.02
+  name: consumer_complaint_limitation
+  type: choice
+  question: Is the consumer complaint within two years of the cause of action?
+  labels:
+    in_time: Within two years
+    delayed_condonation_sought: Beyond two years with an application to condone
+    delayed_no_condonation: Beyond two years without one
+    cannot_tell: The dates are not in the record
+  inputs: [complaint, cause_of_action_date, filing_date, calculator_output]
+  calculator: limitation
+  law: ["Consumer Protection Act 2019 s.69"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: SPL.ARB.01
+  name: arbitration_award_challenge_time
+  type: choice
+  question: Is the petition to set aside the award within the statutory time from receipt of the award?
+  labels:
+    within_three_months: Within three months of receipt
+    within_grace_thirty_days: After three months but within the further thirty days the court may allow, with cause shown
+    beyond_outer_limit: After three months and thirty days (cannot be entertained)
+    cannot_tell: The date of receipt of the award is not in the record
+  inputs: [award, receipt_date, filing_date, calculator_output]
+  calculator: limitation
+  law: ["Arbitration and Conciliation Act 1996 s.34(3)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: SPL.MAT.01
+  name: mutual_consent_divorce_period
+  type: choice
+  question: For a second motion in divorce by mutual consent, has the statutory waiting period run, or is a waiver sought?
+  labels:
+    period_complete: Six months have passed since the first motion
+    waiver_sought: The period has not run and a waiver application is filed
+    period_not_complete: The period has not run and no waiver is sought
+    cannot_tell: The date of the first motion is not in the record
+  inputs: [first_motion_date, second_motion_date, applications, calculator_output]
+  calculator: limitation
+  law: ["Hindu Marriage Act 1955 s.13B(2)", "Special Marriage Act 1954 s.28(2)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: SPL.MAT.02
+  name: maintenance_application_kind
+  type: choice
+  question: Under which provision is maintenance sought in this application?
+  labels:
+    bnss_144_or_crpc_125: BNSS 2023 s.144 (or CrPC 1973 s.125)
+    hma_24_pendente_lite: Hindu Marriage Act 1955 s.24 (pendente lite)
+    hma_25_permanent: Hindu Marriage Act 1955 s.25 (permanent alimony)
+    hama_18_or_20: Hindu Adoptions and Maintenance Act 1956
+    dv_act_20: Protection of Women from Domestic Violence Act 2005 s.20
+    other: Another provision
+    cannot_tell: The application does not show
+  inputs: [application]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Routing and tagging parallel maintenance proceedings; never the amount.
+
+- id: SPL.MAC.01
+  name: motor_claim_limitation
+  type: choice
+  question: Is the motor accident compensation claim filed within six months of the accident?
+  labels:
+    in_time: Within six months
+    beyond_six_months: After six months
+    accident_before_amendment: The accident predates the provision introducing the six-month limit
+    cannot_tell: The dates are not in the record
+  inputs: [claim_petition, accident_date, filing_date, calculator_output]
+  calculator: limitation
+  law: ["Motor Vehicles Act 1988 s.166(3) (as amended in 2019)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: SPL.DRT.01
+  name: drt_threshold
+  type: choice
+  question: Is the debt claimed by a bank or financial institution at or above the Debts Recovery Tribunal's threshold?
+  labels:
+    at_or_above: At or above the threshold (lies before the DRT)
+    below: Below the threshold (civil court)
+    not_bank_debt: The claimant is not a bank or financial institution
+    cannot_tell: The amount or the claimant is not clear
+  inputs: [plaint_or_application, amount_claimed]
+  calculator: thresholds
+  law: ["Recovery of Debts and Bankruptcy Act 1993 s.1(4) and notifications raising the threshold"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true

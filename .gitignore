@@ -1,0 +1,20 @@
+# Data stays out of git: the owner's real case file, downloaded High Court texts and labels, derived datasets.
+data/raw/
+data/hc/
+data/real/
+data/final/
+data/final_v1/
+data/demo/
+# Rendered demo (embeds the case orders) and recording scratch
+demo/manu_case_desk.html
+demo/page_data.json
+demo/*.mp4
+demo/frames/
+demo/film_work/
+demo/recording/
+# Python and run logs
+__pycache__/
+*.pyc
+.pytest_cache/
+modal/*.log
+.DS_Store

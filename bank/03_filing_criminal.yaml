@@ -1,0 +1,165 @@
+# FCR: scrutiny of criminal filings. Cheque-dishonour complaints alone are a large share of pending criminal
+# cases, and most of their scrutiny is statutory date arithmetic the calculator does exactly.
+
+- id: FCR.NI.01
+  name: ni138_cheque_presented_in_validity
+  type: choice
+  question: Was the cheque presented to the bank within its period of validity?
+  labels:
+    within_validity: Presented within the validity period from the date on the cheque
+    after_validity: Presented after the validity period
+    cannot_tell: The cheque date or the presentation date is not in the record
+  inputs: [cheque, return_memo, calculator_output]
+  calculator: ni138
+  law: ["Negotiable Instruments Act 1881 s.138 proviso (a)", "RBI directions on validity of cheques (three months)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.NI.02
+  name: ni138_demand_notice_in_time
+  type: choice
+  question: Was the demand notice issued within thirty days of the payee receiving information of dishonour?
+  labels:
+    in_time: Issued within thirty days of the return memo
+    late: Issued after thirty days
+    no_notice: No demand notice is on record
+    cannot_tell: The return memo or notice date is not in the record
+  inputs: [return_memo, demand_notice, calculator_output]
+  calculator: ni138
+  law: ["Negotiable Instruments Act 1881 s.138 proviso (b)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.NI.03
+  name: ni138_complaint_in_time
+  type: choice
+  question: Was the complaint filed within one month of the cause of action arising (fifteen days after the drawer received notice)?
+  labels:
+    premature: Filed before the fifteen-day payment period ended
+    in_time: Filed within one month after the payment period ended
+    late_condonation_sought: Filed after that month, with an application to condone the delay
+    late: Filed after that month, with no condonation application
+    cannot_tell: The date of service of notice or of filing is not in the record
+  inputs: [demand_notice, notice_service_proof, complaint, calculator_output]
+  calculator: ni138
+  law: ["Negotiable Instruments Act 1881 s.138 proviso (c), s.142(1)(b) and its proviso"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.NI.04
+  name: ni138_territorial_court
+  type: choice
+  question: Is the complaint filed in the court within whose limits the payee's bank branch (where the account is maintained) is situated?
+  labels:
+    correct_court: The payee's branch is within this court's limits
+    wrong_court: The payee's branch is elsewhere
+    cannot_tell: The record does not show the payee's branch
+  inputs: [complaint, cheque, bank_details, court_territory]
+  law: ["Negotiable Instruments Act 1881 s.142(2)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.NI.05
+  name: ni138_complainant_competent
+  type: choice
+  question: Is the complaint made by the payee or holder in due course?
+  labels:
+    payee_or_holder: The complainant is the payee or holder in due course (or its authorised representative with authority on record)
+    authority_missing: A representative files without the authority on record
+    stranger: The complainant is neither payee nor holder in due course
+    cannot_tell: The record does not show
+  inputs: [complaint, cheque, authorisation]
+  law: ["Negotiable Instruments Act 1881 s.142(1)(a)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.CMP.01
+  name: private_complaint_particulars
+  type: choice
+  question: Does the private complaint set out the facts, the offence alleged and the complainant's details as a complaint must?
+  labels:
+    complete: Facts constituting the offence, the provisions alleged, the complainant's particulars and signature are present
+    incomplete: One of those is missing
+    cannot_tell: The complaint is incomplete or unreadable
+  inputs: [complaint]
+  law: ["BNSS 2023 s.2(1)(h) (complaint), s.223"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.APP.01
+  name: criminal_application_kind
+  type: choice
+  question: What kind of application is this in a criminal case?
+  labels:
+    regular_bail: Bail in a case where the applicant is in custody
+    anticipatory_bail: Bail in anticipation of arrest
+    default_bail: Release because investigation was not completed within the statutory period
+    suspension_of_sentence: Suspension of sentence pending appeal
+    exemption_from_appearance: Exemption from personal appearance
+    discharge: Discharge of the accused
+    quashing: Quashing of proceedings or FIR (inherent powers)
+    return_of_property: Return or interim custody of seized property
+    transfer: Transfer of the case
+    other: Another application
+    cannot_tell: The application's prayer is missing or unreadable
+  inputs: [application]
+  law: ["BNSS 2023 ss.480, 482, 483, 187, 430, 528, 497, 447-448"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: Classification for listing and routing only. Nothing in this bank asks whether any application should be allowed.
+
+- id: FCR.DOC.01
+  name: police_report_copies_supplied
+  type: choice
+  question: Has the order sheet recorded supply of the police report and documents to the accused?
+  labels:
+    supplied: Supply of copies is recorded
+    supplied_late: Supply is recorded beyond the statutory period after production or appearance
+    not_recorded: No record of supply
+    cannot_tell: The order sheet is incomplete
+  inputs: [order_sheet, calculator_output]
+  calculator: limitation
+  law: ["BNSS 2023 s.230 (fourteen days)"]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: FCR.EVD.01
+  name: electronic_record_certificate
+  type: choice
+  question: Where an electronic record is relied on, is the certificate the law requires attached?
+  labels:
+    certificate_attached: The required certificate accompanies the electronic record
+    certificate_missing: An electronic record is relied on without the certificate
+    no_electronic_record: No electronic record is relied on
+    cannot_tell: The record does not show
+  inputs: [filing, annexures]
+  law: ["Bharatiya Sakshya Adhiniyam 2023 s.63", "Indian Evidence Act 1872 s.65B (for proceedings under the old law)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FCR.SNC.01
+  name: prosecution_sanction_on_record
+  type: choice
+  question: Where the accused is a public servant and the offence is alleged in the discharge of official duty, is sanction for prosecution on record?
+  labels:
+    sanction_on_record: A sanction order is on record
+    sanction_absent: Required on the averments but not on record
+    not_public_servant: The accused is not a public servant on the record
+    cannot_tell: The record does not show
+  inputs: [police_report, complaint, annexures]
+  law: ["BNSS 2023 s.218", "Prevention of Corruption Act 1988 s.19"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Presence on record only; whether sanction was required or valid is for the court.

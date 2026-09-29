@@ -1,0 +1,195 @@
+# REG: registration and allocation. SRV: service of process and appearance, where most early adjournments come
+# from (the matter cannot proceed until every respondent is served).
+
+- id: REG.TYP.01
+  name: civil_case_type
+  type: choice
+  question: Under which case type should this civil matter be registered?
+  labels:
+    original_suit: Original suit (civil suit, commercial suit)
+    first_appeal: Regular first appeal from a decree
+    second_appeal: Second appeal
+    civil_revision: Civil revision
+    writ_petition: Writ petition
+    miscellaneous_civil: Miscellaneous civil case or appeal from an order
+    execution: Execution petition
+    family: Family court matter (matrimonial, custody, maintenance)
+    arbitration: Arbitration petition or appeal
+    company_or_insolvency: Company or insolvency matter
+    motor_accident_claim: Motor accident claim
+    other: Another case type
+    cannot_tell: The filing does not show enough to register it
+  inputs: [filing]
+  law: ["CPC", "High Court rules and CIS case-type masters"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: REG.SUB.01
+  name: roster_subject_category
+  type: choice
+  question: Which subject category of the roster does this matter fall under?
+  labels:
+    service: Service matters
+    land_and_revenue: Land acquisition, land revenue and tenancy
+    taxation: Direct or indirect taxation
+    labour: Labour and industrial
+    criminal_bail: Criminal bail matters
+    criminal_appeal: Criminal appeals and revisions
+    family: Matrimonial and family
+    commercial: Commercial and contractual
+    constitutional_pil: Public interest litigation
+    education: Education
+    municipal_and_local_bodies: Municipal and local bodies
+    environment: Environment and forests
+    other: Another category
+    cannot_tell: The record does not show the subject clearly enough
+  inputs: [filing, prayer]
+  law: ["The High Court's roster and subject-category master"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Each High Court's master has hundreds of categories; v0 uses a shared coarse set, per-court masters come with each deployment (served in passes).
+
+- id: REG.CON.01
+  name: connected_matter_same_parties
+  type: choice
+  question: Is this matter connected with the other matter shown (same parties and the same subject)?
+  labels:
+    same_parties_same_subject: Same parties and the same subject matter
+    same_parties_other_subject: Same parties, a different subject
+    different_parties_same_question: Different parties, the same question arising
+    unconnected: Not connected
+    cannot_tell: The two records do not show enough to compare
+  inputs: [matter_a, matter_b]
+  law: ["CPC s.10", "High Court rules on tagging connected matters"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Tagging same-question matters lets one bench decide them together; one of the largest listing savings.
+
+- id: REG.SPL.01
+  name: special_court_statute
+  type: choice
+  question: Does a special statute route this criminal matter to a special court?
+  labels:
+    ndps: Narcotic Drugs and Psychotropic Substances Act
+    pocso: Protection of Children from Sexual Offences Act
+    sc_st_act: Scheduled Castes and Scheduled Tribes (Prevention of Atrocities) Act
+    pmla: Prevention of Money-laundering Act
+    uapa_or_nia: Unlawful Activities (Prevention) Act or a scheduled offence under the NIA Act
+    prevention_of_corruption: Prevention of Corruption Act
+    none: No special court statute applies on the sections invoked
+    cannot_tell: The sections invoked are not in the record
+  inputs: [fir_or_complaint, sections_invoked]
+  law: ["NDPS Act 1985 s.36", "POCSO Act 2012 s.28", "SC/ST (PoA) Act 1989 s.14", "PMLA 2002 s.43", "NIA Act 2008 s.11-13", "PC Act 1988 s.3"]
+  labels_from: [rule, cis, gold]
+  evidence: required
+  tier: court_admin
+
+- id: REG.PRI.01
+  name: statutory_priority_category
+  type: choice
+  question: Does the matter fall in a category that the court's listing rules prioritise?
+  labels:
+    accused_in_custody: An accused or appellant is in custody
+    senior_citizen: A party is a senior citizen as the rules define
+    minor_or_child_custody: A child's custody or a minor victim is involved
+    time_bound_statute: A statute sets a time limit for decision (for example cheque-dishonour summary trials, commercial suits, arbitration applications)
+    none: No priority category on the record
+    cannot_tell: The record does not show
+  inputs: [case_record, party_details]
+  law: ["High Court listing rules and administrative directions on priority listing"]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: SRV.RPT.01
+  name: process_report_outcome
+  type: choice
+  question: What does this process or postal report say happened to the summons or notice?
+  labels:
+    served_personally: Served on the party personally
+    served_on_agent_or_family: Served on an authorised agent or an adult family member
+    refused: The party refused to accept it
+    affixed: Affixed on the premises after the party could not be found
+    not_found_or_left: Addressee not found or has left the address
+    address_incomplete: The address is incomplete or wrong
+    addressee_deceased: The addressee is reported dead
+    returned_unclaimed: Returned unclaimed by post
+    cannot_tell: The report is illegible or silent
+  inputs: [process_report]
+  law: ["CPC Order V rules 9-17", "BNSS 2023 ss.63-71"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: SRV.CMP.01
+  name: service_complete_for_party
+  type: choice
+  question: On the record, is service complete for this respondent or defendant?
+  labels:
+    complete: Service is complete (personal, on an authorised person, by refusal, or by an order holding service sufficient)
+    deemed_complete_by_order: The court has ordered service to be deemed sufficient
+    incomplete: Service has not been effected
+    substituted_service_ordered: Substituted service has been ordered and is pending
+    cannot_tell: The record does not show
+  inputs: [process_reports, order_sheet, party]
+  law: ["CPC Order V rules 17, 20", "CPC Order IX"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Asked once per party; the case is ready only when every party is complete.
+
+- id: SRV.APR.01
+  name: appearance_recorded
+  type: choice
+  question: Has this party appeared, in person or through an advocate?
+  labels:
+    in_person_with_counsel: The party is recorded present in person (physically or by video) and counsel also appears for the party
+    in_person_without_counsel: The party is recorded present in person and no counsel appears for the party
+    through_counsel_only: Only counsel appears; the party is absent or exempted
+    not_appeared_after_service: Served but neither the party nor counsel has appeared
+    set_ex_parte: The court has ordered the party to be proceeded against ex parte
+    cannot_tell: The record does not show
+  inputs: [order_sheet, vakalatnama_register, party]
+  law: ["CPC Order IX rules 6, 7", "BNSS 2023 s.228 (exemption from personal attendance)"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: >
+    v0 had "appeared in person" and "appeared through an advocate" as rival labels; the owner's real case showed both
+    are true whenever an accused attends with counsel (40 of 99 real items). Split into mutually exclusive labels
+    for v1; v0 models were trained on the old set.
+
+- id: SRV.NOT.01
+  name: notice_period_before_date
+  type: choice
+  question: Did the party receive the notice early enough before the date fixed?
+  labels:
+    sufficient: The time between service and the date fixed meets the period the rules or the order require
+    insufficient: Service was too close to the date fixed
+    cannot_tell: The service date or the required period is not in the record
+  inputs: [process_report, next_date, required_notice_period, calculator_output]
+  calculator: limitation
+  law: ["CPC Order V rule 6", "Court orders fixing returnable dates"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: SRV.DTH.01
+  name: party_death_reported
+  type: choice
+  question: Does the record report that a party has died?
+  labels:
+    death_reported_with_date: A party's death is reported with a date
+    death_reported_no_date: A death is reported without a date
+    no_death_reported: No death is reported
+    cannot_tell: The record is unclear
+  inputs: [order_sheet, process_reports, applications]
+  law: ["CPC Order XXII"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Feeds the abatement check (PND.ABT.01).

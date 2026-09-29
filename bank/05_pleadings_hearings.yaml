@@ -1,0 +1,201 @@
+# PLD: pleadings and stage. HRG: whether the next hearing can be effective: the adjournment problem, question by
+# question. None of these asks what the court should do; they ask what the record shows.
+
+- id: PLD.WS.01
+  name: written_statement_timeline
+  type: choice
+  question: Was the written statement filed within the period the law allows?
+  labels:
+    within_30_days: Within thirty days of service of summons
+    within_extended_period: After thirty days, within the extended period the court allowed (ordinary suits up to ninety days)
+    commercial_within_120: A commercial suit, filed within one hundred and twenty days of service
+    commercial_beyond_120: A commercial suit, filed after one hundred and twenty days (the right is forfeited)
+    beyond_period_ordinary: An ordinary suit, filed after the extended period
+    not_filed: Not filed
+    cannot_tell: The service date or the filing date is not in the record
+  inputs: [service_date, written_statement_filing_date, commercial_dispute_decision, extension_orders, calculator_output]
+  calculator: limitation
+  law: ["CPC Order VIII rule 1 and proviso", "Commercial Courts Act 2015 (amended Order VIII rule 1)"]
+  labels_from: [rule, cis, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PLD.STG.01
+  name: civil_stage
+  type: choice
+  question: At what stage is this civil case, on the latest order?
+  labels:
+    service_and_appearance: Awaiting service or appearance
+    pleadings: Awaiting written statement or replication
+    admission_denial_or_disclosure: Admission and denial of documents, inspection or disclosure
+    framing_of_issues: Issues to be framed
+    plaintiff_evidence: Plaintiff's evidence
+    defendant_evidence: Defendant's evidence
+    final_arguments: Final arguments
+    judgment_reserved: Judgment reserved
+    interlocutory_only: Only an interlocutory application is being heard
+    stayed: Proceedings stayed
+    cannot_tell: The latest order does not show the stage
+  inputs: [latest_orders]
+  law: ["CPC Orders VIII, XI, XIV, XVIII, XX"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PLD.STG.02
+  name: criminal_trial_stage
+  type: choice
+  question: At what stage is this criminal trial, on the latest order?
+  labels:
+    appearance_and_copies: Appearance of the accused and supply of copies
+    charge_or_discharge: Hearing on charge or discharge
+    prosecution_evidence: Prosecution evidence
+    accused_statement: Examination of the accused
+    defence_evidence: Defence evidence
+    final_arguments: Final arguments
+    judgment_reserved: Judgment reserved
+    accused_absconding: Accused absconding or declared a proclaimed offender
+    stayed: Proceedings stayed
+    cannot_tell: The latest order does not show the stage
+  inputs: [latest_orders]
+  law: ["BNSS 2023 chapters XIX-XXII", "BNSS s.351 (examination of accused)"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: PLD.ISS.01
+  name: issues_framed
+  type: choice
+  question: Have issues been framed in this suit?
+  labels:
+    framed: An order framing issues is on record
+    not_yet: Pleadings are complete but issues have not been framed
+    pleadings_incomplete: Pleadings are not yet complete
+    cannot_tell: The record does not show
+  inputs: [order_sheet]
+  law: ["CPC Order XIV"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PLD.APP.01
+  name: pending_application_blocks_progress
+  type: choice
+  question: Is an interlocutory application pending that must be decided before the main matter can proceed?
+  labels:
+    blocking_pending: Such an application is pending (amendment, impleadment, stay, condonation, transfer)
+    non_blocking_pending: An application is pending but the main matter can proceed
+    none_pending: No application is pending
+    cannot_tell: The record does not show
+  inputs: [order_sheet, applications_register]
+  law: ["CPC Order VI rule 17", "CPC Order I rule 10", "Limitation Act s.5"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.RDY.01
+  name: hearing_readiness
+  type: score
+  question: How ready is this matter for an effective hearing on the next date?
+  labels:
+    - "0: not ready: service or appearance is incomplete, or a blocking application is pending"
+    - "1: partly ready: pleadings, documents or compliance with directions are outstanding"
+    - "2: ready subject to one step: one listed step remains (for example a witness to be summoned)"
+    - "3: ready: nothing on the record prevents the stage fixed from being taken up"
+  inputs: [service_decisions, stage_decision, compliance_decisions, pending_application_decision]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: Composed from the per-question answers by rule; the learned version must agree with the rule on held-out cases before it replaces it.
+
+- id: HRG.ADJ.01
+  name: adjournments_granted_to_party
+  type: choice
+  question: How many adjournments has this party been granted, against the statutory limit?
+  labels:
+    none: None
+    within_limit: One to three
+    beyond_limit: More than three
+    cannot_tell: The order sheet is incomplete
+  inputs: [order_sheet, party]
+  law: ["CPC Order XVII rule 1 proviso (no more than three adjournments to a party)"]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.CMP.01
+  name: direction_complied
+  type: choice
+  question: Did the party directed to act by the last order do so, according to the record?
+  labels:
+    complied: Compliance is recorded or the required filing is on record
+    partly_complied: Compliance is partial
+    not_complied: The record shows non-compliance or no filing by the deadline
+    deadline_not_reached: The deadline has not yet passed
+    cannot_tell: The record does not show
+  inputs: [direction, later_order_sheet, filings_register, calculator_output]
+  calculator: limitation
+  labels_from: [cis, rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.STY.01
+  name: stayed_by_higher_court
+  type: choice
+  question: Is a stay by a higher court in force on these proceedings?
+  labels:
+    stay_in_force: A higher court's stay operates on the record
+    stay_vacated: A stay was granted and later vacated or expired
+    no_stay: No stay on the record
+    cannot_tell: The record does not show
+  inputs: [order_sheet, higher_court_orders]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.PHD.01
+  name: part_heard
+  type: choice
+  question: Is this matter part-heard?
+  labels:
+    part_heard: Arguments or evidence have begun before the present bench and are incomplete
+    not_part_heard: Not part-heard
+    cannot_tell: The record does not show
+  inputs: [order_sheet]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.PRD.01
+  name: accused_production_status
+  type: choice
+  question: For an accused in custody, was the accused produced on the last date?
+  labels:
+    produced_physically: Produced in court
+    produced_by_video: Produced by video-conference
+    not_produced: Not produced
+    on_bail: Not in custody (on bail)
+    cannot_tell: The record does not show
+  inputs: [order_sheet]
+  law: ["BNSS 2023 s.187, s.530 (electronic mode)"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: HRG.WIT.01
+  name: witness_summons_status
+  type: choice
+  question: For the witness due on the next date, what is the status of summons?
+  labels:
+    served: Summons served
+    unserved: Summons not served
+    bailable_warrant_issued: A bailable warrant has issued
+    witness_dropped: The party has given up the witness
+    not_issued: Summons not issued
+    cannot_tell: The record does not show
+  inputs: [order_sheet, process_reports, witness]
+  law: ["CPC Order XVI", "BNSS ss.63-71, 90"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin

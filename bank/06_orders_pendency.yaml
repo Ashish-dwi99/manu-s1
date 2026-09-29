@@ -1,0 +1,267 @@
+# ORD: what an order did. PND: docket hygiene: cases that are over in substance but still counted as pending,
+# and cases a Lok Adalat could settle. This is the family that moves the pendency number.
+
+- id: ORD.TYP.01
+  name: order_kind
+  type: choice
+  question: What kind of order is this?
+  labels:
+    adjournment: Adjournment only, with or without directions
+    procedural_direction: Procedural directions (filing, service, documents, listing)
+    interim_relief: An order on interim relief
+    interlocutory_disposal: Disposal of an interlocutory application
+    final_disposal: Final disposal of the case
+    reserved: Orders or judgment reserved
+    transfer_or_referral: Transfer, or referral to mediation, arbitration or Lok Adalat
+    cannot_tell: The order is unreadable or incomplete
+  inputs: [order_text]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: ORD.OUT.01
+  name: final_disposal_nature
+  type: choice
+  question: How was the case finally disposed of by this order?
+  labels:
+    allowed: Allowed or decreed
+    partly_allowed: Partly allowed or decreed
+    dismissed_on_merits: Dismissed after hearing
+    dismissed_for_default: Dismissed for default or non-prosecution
+    dismissed_as_withdrawn: Dismissed as withdrawn
+    compromised_or_settled: Disposed of in terms of a compromise or settlement
+    disposed_with_directions: Disposed of with directions
+    infructuous: Dismissed as infructuous
+    abated: Abated
+    returned_or_rejected: Plaint or petition returned or rejected
+    transferred: Transferred to another court
+    acquitted: Acquittal
+    convicted: Conviction
+    compounded: Offence compounded
+    cannot_tell: The operative part is missing or unclear
+  inputs: [order_text]
+  law: ["CPC Order XX", "CPC Order XXIII", "BNSS s.359"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Reads the operative part only. The disposal nature in the court's database is the free label; disagreements are data errors worth reporting.
+
+- id: ORD.DIR.01
+  name: direction_addressee
+  type: choice
+  question: To whom is this direction in the order addressed?
+  labels:
+    petitioner_or_plaintiff: The petitioner or plaintiff
+    respondent_or_defendant: The respondent or defendant
+    both_parties: All parties
+    government_or_authority: A government department, public authority or officer
+    police_or_prosecution: Police or prosecution
+    registry: The court's registry or office
+    subordinate_court: A subordinate court
+    other: Someone else
+    cannot_tell: The direction does not name its addressee clearly
+  inputs: [direction_text, order_text]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: ORD.DIR.02
+  name: direction_deadline_kind
+  type: choice
+  question: What deadline does this direction set?
+  labels:
+    fixed_date: A fixed calendar date
+    period_from_order: A period from the date of the order (days, weeks or months)
+    period_from_receipt: A period from receipt of a copy of the order
+    before_next_date: Before the next date of hearing
+    no_deadline: No deadline
+    cannot_tell: The deadline is ambiguous
+  inputs: [direction_text]
+  calculator: limitation
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: The calculator turns the kind plus the extracted number into the actual due date for compliance tracking.
+
+- id: ORD.COS.01
+  name: costs_imposed
+  type: choice
+  question: Does the order impose costs, and are they a condition of proceeding?
+  labels:
+    costs_as_condition: Costs imposed as a condition (for example of an adjournment or of setting aside)
+    costs_awarded: Costs awarded, not a condition
+    no_costs: No costs
+    cannot_tell: The order is unclear
+  inputs: [order_text]
+  law: ["CPC ss.35, 35A, 35B"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: ORD.INT.01
+  name: interim_order_status
+  type: choice
+  question: What does this order do to an interim order in the case?
+  labels:
+    granted: Grants an interim order
+    extended: Extends or continues an interim order
+    vacated: Vacates or modifies an interim order
+    declined: Declines interim relief
+    no_interim_matter: Deals with no interim order
+    cannot_tell: The order is unclear
+  inputs: [order_text]
+  law: ["CPC Order XXXIX"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: ORD.NXT.01
+  name: next_date_consistent
+  type: choice
+  question: Does the next date recorded in the case database match the date fixed in this order?
+  labels:
+    matches: The dates match
+    differs: The dates differ
+    no_date_in_order: The order fixes no next date
+    cannot_tell: The order's date is unreadable
+  inputs: [order_text, cis_next_date]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PND.ABT.01
+  name: abatement_check
+  type: choice
+  question: After a party's death, has the case abated for want of substitution of legal representatives?
+  labels:
+    substituted_in_time: Legal representatives were brought on record within ninety days of death
+    substitution_pending_in_time: Ninety days from death have not yet passed
+    abated_no_setting_aside: More than ninety days passed without substitution and no application to set aside abatement is on record
+    setting_aside_sought: An application to set aside abatement or condone delay is pending
+    right_survives_against_others: The right to sue survives among the remaining parties alone
+    no_death: No party has died on the record
+    cannot_tell: The date of death or of substitution is not in the record
+  inputs: [death_decision, substitution_applications, order_sheet, calculator_output]
+  calculator: limitation
+  law: ["CPC Order XXII rules 1-4, 9", "Limitation Act 1963 Schedule arts. 120, 121"]
+  labels_from: [rule, cis, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PND.SET.01
+  name: settled_not_disposed
+  type: choice
+  question: Does the record show the dispute was settled or withdrawn while the case remains pending?
+  labels:
+    compromise_filed_pending: A compromise, settlement or withdrawal memo is on record and the case is still pending
+    settlement_reported_orally: Settlement is reported in an order without a memo
+    no_settlement: No settlement or withdrawal on record
+    cannot_tell: The record does not show
+  inputs: [order_sheet, filings_register, cis_status]
+  law: ["CPC Order XXIII rules 1, 3"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PND.INF.01
+  name: infructuous_on_record
+  type: choice
+  question: Does the record show that the relief sought no longer serves any purpose?
+  labels:
+    reported_infructuous: A party or the court records that the matter has become infructuous (the act, event or period in question is over)
+    possibly_infructuous: The relief was tied to a date or event that has passed, but no one has said so
+    live: The relief is still live
+    cannot_tell: The record does not show
+  inputs: [prayer, order_sheet, calculator_output]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Flags for the court to call the matter; never a disposal.
+
+- id: PND.MIS.01
+  name: database_status_mismatch
+  type: choice
+  question: Does the case's status in the court database agree with the latest order?
+  labels:
+    agrees: The status and stage agree with the order
+    disposed_shown_pending: The order disposes of the case but the database shows it pending
+    pending_shown_disposed: The database shows it disposed but the order does not dispose of it
+    stage_differs: Both show it pending but at different stages
+    cannot_tell: The order does not show the status
+  inputs: [latest_order, cis_status]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: The national pendency figures are built from these records; every mismatch found is a correction to them.
+
+- id: PND.LOK.01
+  name: lok_adalat_category
+  type: choice
+  question: Into which category that Lok Adalats settle does this pending case fall?
+  labels:
+    cheque_dishonour: Cheque dishonour (Negotiable Instruments Act s.138)
+    compoundable_criminal: A criminal case where every offence charged is compoundable
+    motor_accident_claim: Motor accident compensation claim
+    matrimonial_non_divorce: Matrimonial dispute other than a decree of divorce (maintenance, restitution, custody arrangements)
+    bank_recovery: Bank or financial institution recovery
+    labour_or_wages: Labour and wage dispute
+    utility_bills: Electricity, water or telephone bills
+    land_acquisition_compensation: Land acquisition compensation
+    civil_money_or_property: Civil money or property dispute
+    not_a_lok_adalat_category: None of these (for example non-compoundable offences)
+    cannot_tell: The record does not show enough
+  inputs: [case_record, sections_invoked, compoundability_decision]
+  law: ["Legal Services Authorities Act 1987 s.19, s.20"]
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: A category for referral lists, not a judgment that parties will or should settle.
+
+- id: PND.CMP.01
+  name: offence_compoundable
+  type: choice
+  question: On the sections charged, is every offence compoundable?
+  labels:
+    compoundable_without_permission: All compoundable by the victim without the court's permission
+    compoundable_with_permission: All compoundable, some only with the court's permission
+    not_all_compoundable: At least one offence is not compoundable
+    cannot_tell: The sections charged are not in the record
+  inputs: [sections_invoked, code_applicable_decision]
+  calculator: statutory_tables
+  law: ["BNSS 2023 s.359 and its table", "CrPC 1973 s.320 (proceedings under the old law)", "NI Act 1881 s.147"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: A table lookup the calculator does; the model reads which sections are charged.
+
+- id: PND.DOR.01
+  name: dormant_matter
+  type: choice
+  question: Has this matter had no effective hearing for a long period?
+  labels:
+    effective_recently: An effective hearing (evidence, arguments or a substantive order) within the last twelve months
+    dormant_12_36_months: Only adjournments for twelve to thirty-six months
+    dormant_over_36_months: Only adjournments for more than thirty-six months
+    cannot_tell: The order sheet does not cover the period
+  inputs: [order_sheet, calculator_output]
+  calculator: limitation
+  labels_from: [cis, rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: PND.PO.01
+  name: proclaimed_offender_status
+  type: choice
+  question: Is an accused declared a proclaimed offender, stalling the trial?
+  labels:
+    proclaimed: An accused is declared a proclaimed offender and has not appeared
+    proclamation_issued: A proclamation has issued, the declaration has not yet been made
+    trial_in_absentia_ordered: The court has ordered trial in the accused's absence
+    no_such_accused: No accused is absconding
+    cannot_tell: The record does not show
+  inputs: [order_sheet]
+  law: ["BNSS 2023 ss.84, 356"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin

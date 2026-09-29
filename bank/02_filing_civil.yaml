@@ -1,0 +1,350 @@
+# FIL: scrutiny of a civil filing before registration. The registry's first pass, and the largest single source
+# of delay before a case even begins: every defect is a return, a re-filing and a lost week. Each answer is a
+# check against a named provision, never a view on the merits.
+
+- id: FIL.PLT.01
+  name: plaint_particulars_complete
+  type: choice
+  question: Does the plaint contain the particulars a plaint must state?
+  labels:
+    complete: Court, parties with descriptions and residences, facts constituting the cause of action and when it arose, facts showing jurisdiction, relief claimed, and valuation for jurisdiction and court fee are all stated
+    particulars_missing: One or more of those particulars is absent
+    cannot_tell: The plaint is incomplete or unreadable
+  inputs: [plaint]
+  law: ["CPC Order VII rule 1"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Evidence must point at the missing head, so the defect memo can name it.
+
+- id: FIL.PLT.02
+  name: pleading_verified
+  type: choice
+  question: Is the pleading verified as the law requires?
+  labels:
+    verified: A verification stating which paragraphs are true to knowledge and which on information is signed and dated
+    defective_verification: A verification exists but omits the paragraph split, signature, date or place
+    no_verification: There is no verification
+    cannot_tell: The verification page is missing or unreadable
+  inputs: [pleading]
+  law: ["CPC Order VI rule 15"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.PLT.03
+  name: commercial_statement_of_truth
+  type: choice
+  question: In a commercial dispute, is the pleading verified by a statement of truth in the prescribed form?
+  labels:
+    compliant: A statement of truth in the form the Commercial Courts Act appendix prescribes is included
+    ordinary_verification_only: Only an ordinary verification is included
+    missing: No verification or statement of truth
+    not_commercial: The suit is not a commercial dispute
+    cannot_tell: The record does not show
+  inputs: [pleading, commercial_dispute_decision]
+  law: ["CPC Order VI rule 15A (as applied by the Commercial Courts Act 2015)"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.AFF.01
+  name: affidavit_properly_sworn
+  type: choice
+  question: Is the affidavit sworn or affirmed before an authorised officer?
+  labels:
+    proper: Deponent's signature, verification and the attestation of an oath commissioner or notary with seal and date are present
+    attestation_missing: The attestation or seal is missing
+    deponent_signature_missing: The deponent has not signed
+    cannot_tell: The attestation area is missing or unreadable
+  inputs: [affidavit]
+  law: ["Oaths Act 1969", "CPC Order XIX"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.VAK.01
+  name: vakalatnama_filed
+  type: choice
+  question: Is a valid vakalatnama or memo of appearance on record for the advocate filing this?
+  labels:
+    valid: Signed by the party and accepted by the advocate, with enrolment details
+    defective: Present but unsigned by the party, not accepted, or without enrolment details
+    missing: No vakalatnama or memo for this advocate
+    party_in_person: The party appears in person
+    cannot_tell: The record does not show
+  inputs: [filing_bundle, advocate_on_record]
+  law: ["CPC Order III rule 4", "High Court rules on appearance"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.FEE.01
+  name: court_fee_adequate
+  type: choice
+  question: Is the court fee paid adequate for the relief as valued?
+  labels:
+    adequate: The fee paid equals or exceeds the fee the calculator computes for the valuation and relief
+    deficit: The fee paid is less than the computed fee
+    valuation_missing: The plaint does not state the valuation for court fee
+    cannot_tell: The fee paid or the relief cannot be read from the record
+  inputs: [plaint, fee_paid, fee_calculator_output]
+  calculator: court_fee
+  law: ["The applicable State Court Fees Act (or Court-fees Act 1870 where it still applies)", "CPC Order VII rule 11(b),(c)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: Fee schedules differ by state and by relief; the calculator carries one table per state, versioned by date.
+
+- id: FIL.FEE.02
+  name: valuation_stated_for_both_purposes
+  type: choice
+  question: Does the plaint state the value of the subject matter for jurisdiction and for court fee?
+  labels:
+    both_stated: Both valuations are stated
+    one_missing: Only one of the two is stated
+    none: Neither is stated
+    cannot_tell: The valuation paragraph is missing or unreadable
+  inputs: [plaint]
+  law: ["CPC Order VII rule 1(i)", "Suits Valuation Act 1887"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.JUR.01
+  name: pecuniary_jurisdiction
+  type: choice
+  question: Is the suit within this court's pecuniary jurisdiction on the valuation stated?
+  labels:
+    within: The valuation is within this court's pecuniary limits
+    exceeds: The valuation exceeds this court's limit
+    below_lowest_court: The suit must be instituted in a court of lower grade
+    cannot_tell: The valuation or this court's limit is not available
+  inputs: [plaint_valuation, court_pecuniary_limits]
+  calculator: thresholds
+  law: ["CPC s.15", "State civil courts Acts (pecuniary limits)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: FIL.JUR.02
+  name: territorial_jurisdiction
+  type: choice
+  question: On the plaint's own averments, does this court have territorial jurisdiction?
+  labels:
+    property_situated_here: The suit concerns immovable property situated within this court's limits
+    defendant_resides_here: A defendant resides, carries on business or personally works for gain within the limits
+    cause_of_action_here: The cause of action, wholly or in part, arose within the limits
+    none_averred: The plaint does not aver any ground of territorial jurisdiction here
+    cannot_tell: The averments are unclear or unreadable
+  inputs: [plaint, court_territory]
+  law: ["CPC ss.16-20"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Reads only what the plaint avers; whether the averment is true is for the court.
+
+- id: FIL.JUR.03
+  name: civil_court_jurisdiction_barred
+  type: choice
+  question: Does a statute route this subject matter away from the ordinary civil court?
+  labels:
+    not_barred: No special statute bars the civil court on this subject matter
+    debts_recovery_tribunal: Recovery by a bank or financial institution at or above the DRT threshold
+    consumer_commission: A consumer complaint the plaintiff may bring before a consumer commission (not a bar; flag only)
+    rent_or_revenue_forum: A rent controller, revenue court or similar forum under state law
+    company_or_insolvency_tribunal: NCLT under the Companies Act 2013 or the Insolvency and Bankruptcy Code 2016
+    rera: A matter within RERA's exclusive jurisdiction
+    labour_or_industrial: An industrial or labour dispute for the forum under labour law
+    arbitration_agreement: An arbitration agreement is pleaded or annexed (reference may be sought under s.8 of the Arbitration Act)
+    cannot_tell: The record does not show the subject matter clearly enough
+  inputs: [plaint, relief_sought]
+  law: ["CPC s.9", "Recovery of Debts and Bankruptcy Act 1993 s.18", "RERA 2016 s.79", "Companies Act 2013 s.430", "Arbitration and Conciliation Act 1996 s.8"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: FIL.GOV.01
+  name: section_80_notice
+  type: choice
+  question: Where the government or a public officer is a defendant, was the statutory notice served before suit?
+  labels:
+    notice_served_and_period_expired: Notice was served and two months elapsed before institution
+    notice_served_period_not_expired: Notice was served but the suit was filed before two months elapsed
+    leave_sought_urgent: The plaintiff seeks leave to sue without notice for urgent relief
+    no_notice: No notice is pleaded or annexed
+    not_applicable: No government or public officer is a defendant
+    cannot_tell: The record does not show
+  inputs: [plaint, notice_date, filing_date]
+  calculator: limitation
+  law: ["CPC s.80"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.COM.01
+  name: commercial_dispute
+  type: choice
+  question: Is this a commercial dispute of specified value under the Commercial Courts Act?
+  labels:
+    commercial_specified_value: The dispute is within the Act's definition and its specified value meets the threshold
+    commercial_below_value: Commercial in nature but below the specified value
+    not_commercial: Not a commercial dispute within the definition
+    cannot_tell: The nature or the value cannot be determined from the record
+  inputs: [plaint, valuation]
+  calculator: thresholds
+  law: ["Commercial Courts Act 2015 s.2(1)(c), s.2(1)(i), s.12"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: Specified value threshold (three lakh rupees since the 2018 amendment) lives in the thresholds table, not the model.
+
+- id: FIL.COM.02
+  name: pre_institution_mediation
+  type: choice
+  question: In a commercial suit, was pre-institution mediation exhausted or validly excused?
+  labels:
+    mediation_exhausted: A mediation report or non-starter report is annexed
+    urgent_interim_relief_claimed: The suit contemplates urgent interim relief and the plaint says so
+    not_done: Neither mediation nor urgent interim relief is shown
+    not_applicable: Not a commercial suit of specified value
+    cannot_tell: The record does not show
+  inputs: [plaint, annexures, commercial_dispute_decision]
+  law: ["Commercial Courts Act 2015 s.12A"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.LIM.01
+  name: suit_limitation
+  type: choice
+  question: On the dates the record gives, is this suit within limitation?
+  labels:
+    in_time: Within the period the applicable article allows, after lawful exclusions
+    exclusion_claimed: Outside the period unless an exclusion or extension the plaint claims applies (acknowledgment, part payment, fraud, disability, prior bona fide proceeding)
+    time_barred: Outside the period and no exclusion is claimed
+    cannot_tell: The start date, the article or the filing date cannot be fixed from the record
+  inputs: [plaint, cause_of_action_date, filing_date, calculator_output]
+  calculator: limitation
+  law: ["Limitation Act 1963 s.3", "ss.4, 6-8, 14, 17-19", "Schedule arts. 1-113"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Section 5 condonation does not apply to suits; the calculator knows which article, the model reads which facts.
+
+- id: FIL.LIM.02
+  name: limitation_article
+  type: choice
+  question: Which limitation article governs this suit on the relief claimed?
+  labels:
+    art_54_specific_performance: Specific performance of a contract (three years)
+    art_55_breach_of_contract: Compensation for breach of contract (three years)
+    art_58_declaration: Any other declaration (three years)
+    art_65_possession_on_title: Possession of immovable property based on title (twelve years)
+    art_113_residuary: Any suit for which no period is provided elsewhere (three years)
+    other_article: Another article of the Schedule
+    cannot_tell: The relief is not clear enough to choose
+  inputs: [plaint, relief_sought]
+  law: ["Limitation Act 1963, Schedule, First Division"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: FIL.O7.01
+  name: rejection_grounds_on_face
+  type: choice
+  question: Does the plaint on its face show a ground on which a plaint is returned or rejected for a curable formal defect?
+  labels:
+    none: No such formal defect
+    undervalued_not_corrected: The relief is undervalued and a direction to correct is needed
+    insufficiently_stamped: The plaint is written on insufficiently stamped paper
+    not_in_duplicate: The plaint is not filed in duplicate where required
+    cannot_tell: The record does not show
+  inputs: [plaint, fee_decision, valuation_decision]
+  law: ["CPC Order VII rule 11(b),(c),(e),(f)"]
+  labels_from: [rule, teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Deliberately excludes "discloses no cause of action" and "barred by law", which are judicial determinations, not registry checks.
+
+- id: FIL.PTY.01
+  name: minor_or_unsound_party_represented
+  type: choice
+  question: Is every minor or person of unsound mind among the parties represented by a next friend or guardian?
+  labels:
+    represented: Each such party is represented
+    unrepresented: A minor or person of unsound mind is a party without a next friend or guardian
+    no_such_party: No party is a minor or of unsound mind on the record
+    cannot_tell: Ages or capacity are not stated
+  inputs: [cause_title, plaint]
+  law: ["CPC Order XXXII rules 1, 3, 15"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.PTY.02
+  name: party_addresses_complete
+  type: choice
+  question: Does every party have an address complete enough to serve process?
+  labels:
+    complete: Every party has a full address (and, where the rules require, contact details)
+    incomplete: At least one party's address is missing or too incomplete to serve
+    cannot_tell: The memo of parties is missing or unreadable
+  inputs: [memo_of_parties]
+  law: ["CPC Order VII rule 1(b)", "CPC Order VII rule 19 and High Court rules on addresses for service"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.CAV.01
+  name: caveat_on_record
+  type: choice
+  question: Is a subsisting caveat on record against this filing?
+  labels:
+    caveat_subsisting: A caveat by a party to this matter was lodged within the last ninety days
+    caveat_lapsed: A caveat exists but ninety days have passed since it was lodged
+    no_caveat: No matching caveat
+    cannot_tell: The caveat register cannot be matched to the parties
+  inputs: [parties, subject_matter, caveat_register]
+  calculator: limitation
+  law: ["CPC s.148A"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: When subsisting, notice must go to the caveator before interim relief; the registry needs this at the door.
+
+- id: FIL.PRV.01
+  name: previous_proceedings_disclosed
+  type: choice
+  question: Does the filing disclose previous or pending proceedings on the same subject matter?
+  labels:
+    disclosed: Previous or pending proceedings are disclosed
+    none_stated: The filing states there are none
+    silent: The filing does not address it where the rules require a statement
+    cannot_tell: The record does not show
+  inputs: [filing]
+  law: ["High Court rules requiring disclosure of earlier proceedings", "CPC s.10 (context)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: FIL.URG.01
+  name: urgent_interim_relief_sought
+  type: choice
+  question: Does the filing seek urgent or ex parte interim relief?
+  labels:
+    ex_parte_interim: Interim relief is sought before notice to the other side
+    interim_after_notice: Interim relief is sought, after notice
+    no_interim: No interim relief is sought
+    cannot_tell: The prayer clause is missing or unreadable
+  inputs: [prayer, applications]
+  law: ["CPC Order XXXIX rules 1-3", "CPC s.151"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Listing priority only. Whether relief should be granted is never asked.

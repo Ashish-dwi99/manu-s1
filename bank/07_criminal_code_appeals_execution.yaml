@@ -1,0 +1,263 @@
+# CRM: which criminal law applies, after the change of codes on 1 July 2024, and what the offence's schedule says.
+# APL: appeals, revisions and review. EXE: execution of decrees. Mostly table lookups and dates, done by the
+# calculator; the model reads the record for the facts the tables need.
+
+- id: CRM.CODE.01
+  name: substantive_code_applicable
+  type: choice
+  question: Which penal code governs the offence alleged, by the date of the offence?
+  labels:
+    ipc: Indian Penal Code 1860 (offence committed before 1 July 2024)
+    bns: Bharatiya Nyaya Sanhita 2023 (offence committed on or after 1 July 2024)
+    continuing_across_dates: The alleged conduct spans the change of codes
+    cannot_tell: The date of the offence is not in the record
+  inputs: [fir_or_complaint, offence_date]
+  law: ["Bharatiya Nyaya Sanhita 2023 s.358 (repeal and savings)", "Constitution art. 20(1)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: CRM.CODE.02
+  name: procedure_code_applicable
+  type: choice
+  question: Under which procedure code does this proceeding continue?
+  labels:
+    crpc_saved: The Code of Criminal Procedure 1973, because the appeal, application, trial, inquiry or investigation was pending on 1 July 2024
+    bnss: The Bharatiya Nagarik Suraksha Sanhita 2023
+    cannot_tell: The record does not show when the proceeding began
+  inputs: [case_record, registration_date, fir_date]
+  law: ["BNSS 2023 s.531(2)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: CRM.MAP.01
+  name: bns_corresponding_section
+  type: choice
+  question: Which section of the new code corresponds to the old-code section named, on the facts alleged?
+  labels:
+    candidate_1: The first candidate from the official correspondence table
+    candidate_2: The second candidate
+    candidate_3: The third candidate
+    no_correspondence: The offence has no counterpart in the new code
+    cannot_tell: The facts do not decide between the candidates
+  inputs: [ipc_section, alleged_facts, correspondence_table_candidates]
+  calculator: statutory_tables
+  law: ["Official IPC-BNS correspondence tables (Ministry of Home Affairs / BPR&D)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+  notes: The candidate labels are filled per question from the table; the model chooses among them on the facts.
+
+- id: CRM.SCH.01
+  name: offence_classification
+  type: choice
+  question: On the First Schedule, how is the most serious offence charged classified?
+  labels:
+    cognizable_non_bailable: Cognizable and non-bailable
+    cognizable_bailable: Cognizable and bailable
+    non_cognizable_non_bailable: Non-cognizable and non-bailable
+    non_cognizable_bailable: Non-cognizable and bailable
+    cannot_tell: The sections charged are not in the record
+  inputs: [sections_invoked, code_applicable_decision]
+  calculator: statutory_tables
+  law: ["BNSS 2023 First Schedule", "CrPC 1973 First Schedule"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  notes: The classification of an offence in the statute, not of a person.
+
+- id: CRM.SCH.02
+  name: triable_by
+  type: choice
+  question: On the First Schedule, which court tries the most serious offence charged?
+  labels:
+    court_of_session: Court of Session
+    chief_or_first_class_magistrate: Magistrate of the first class (or Chief Judicial Magistrate)
+    any_magistrate: Any Magistrate
+    special_court: A special court under a special statute
+    cannot_tell: The sections charged are not in the record
+  inputs: [sections_invoked, special_court_decision]
+  calculator: statutory_tables
+  law: ["BNSS 2023 First Schedule"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: CRM.INV.01
+  name: police_report_filed_by_deadline
+  type: choice
+  question: Where the law sets a time for completing investigation of this offence, was the police report filed within it?
+  labels:
+    filed_in_time: Filed within the statutory time
+    filed_late: Filed after it
+    not_yet_filed_time_running: Not filed and the time has not run out
+    not_yet_filed_time_over: Not filed and the time has run out
+    no_statutory_time: The law sets no fixed time for this offence
+    cannot_tell: The dates are not in the record
+  inputs: [fir_date, police_report_date, sections_invoked, calculator_output]
+  calculator: limitation
+  law: ["BNSS 2023 s.193(2)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: CRM.CUS.01
+  name: custody_period_threshold
+  type: choice
+  question: Measured against the statutory thresholds, how long has this undertrial been detained?
+  labels:
+    below_one_third: Less than one-third of the maximum sentence for the offence
+    one_third_to_half: One-third or more, but less than half
+    half_or_more: Half or more of the maximum sentence
+    excluded_offence: The offence is punishable with death or life imprisonment
+    cannot_tell: The custody dates or the offence's maximum sentence are not in the record
+  inputs: [custody_dates, sections_invoked, calculator_output]
+  calculator: custody
+  law: ["BNSS 2023 s.479"]
+  labels_from: [rule]
+  evidence: required
+  tier: restricted
+  notes: Arithmetic for prison administrations and legal-services authorities only (they must apply under s.479(3)). Never deployed in a court, never an assessment of the person. See EXCLUDED.md.
+
+- id: APL.TYP.01
+  name: remedy_kind
+  type: choice
+  question: What kind of challenge does this filing bring?
+  labels:
+    first_appeal: First appeal from a decree
+    second_appeal: Second appeal on a substantial question of law
+    appeal_from_order: Appeal from an appealable order
+    revision: Revision
+    review: Review
+    letters_patent_appeal: Intra-court appeal
+    criminal_appeal_conviction: Appeal against conviction
+    criminal_appeal_acquittal: Appeal against acquittal
+    criminal_revision: Criminal revision
+    arbitration_challenge: Petition to set aside an arbitral award
+    cannot_tell: The filing does not show
+  inputs: [memo]
+  law: ["CPC ss.96, 100, 104, 114, 115; Order XLI, XLIII, XLVII", "BNSS 2023 ss.413-442", "Arbitration and Conciliation Act 1996 s.34"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: APL.LIM.01
+  name: appeal_limitation
+  type: choice
+  question: Is the appeal or challenge within limitation, after excluding the time for obtaining copies?
+  labels:
+    in_time: Within the period after lawful exclusions
+    delayed_condonation_sought: Beyond the period, with an application to condone the delay
+    delayed_no_condonation: Beyond the period, with no condonation application
+    beyond_outer_limit: Beyond an outer limit the statute does not allow the court to extend (for example an arbitral award challenge)
+    cannot_tell: The dates needed are not in the record
+  inputs: [impugned_order_date, copy_application_date, copy_ready_date, filing_date, remedy_kind_decision, calculator_output]
+  calculator: limitation
+  law: ["Limitation Act 1963 ss.5, 12; Schedule arts. 114-117, 123-131", "Arbitration and Conciliation Act 1996 s.34(3)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: APL.DOC.01
+  name: impugned_order_copy_filed
+  type: choice
+  question: Is a copy of the order or decree under challenge filed with the appeal?
+  labels:
+    certified_copy: A certified copy is filed
+    uncertified_with_exemption: An uncertified copy is filed with an application for exemption
+    missing: No copy of the order or decree is filed
+    cannot_tell: The record does not show
+  inputs: [appeal_bundle, filing_index]
+  law: ["CPC Order XLI rule 1"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: APL.DEP.01
+  name: statutory_pre_deposit
+  type: choice
+  question: Where a statute requires a deposit to entertain the appeal, is the deposit shown?
+  labels:
+    deposit_shown: The required deposit is shown
+    deposit_short: A deposit is shown but less than required
+    deposit_absent: Required but not shown
+    not_required: No statute requires a deposit for this appeal
+    cannot_tell: The record does not show
+  inputs: [appeal_bundle, remedy_kind_decision, calculator_output]
+  calculator: thresholds
+  law: ["NI Act 1881 s.148 (up to twenty percent, at the appellate court's direction)", "MSMED Act 2006 s.19 (seventy-five percent)"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+  verify: true
+
+- id: APL.SQL.01
+  name: substantial_question_formulated
+  type: choice
+  question: Does this second appeal state the substantial question of law it raises?
+  labels:
+    stated: The memorandum states one or more substantial questions of law
+    not_stated: No question of law is stated
+    cannot_tell: The memorandum is incomplete
+  inputs: [memo]
+  law: ["CPC s.100(3)"]
+  labels_from: [teacher, gold]
+  evidence: required
+  tier: court_admin
+  notes: Presence only. Whether a question is substantial is for the court.
+
+- id: EXE.LIM.01
+  name: execution_within_limitation
+  type: choice
+  question: Is the execution petition filed within twelve years of the decree becoming enforceable?
+  labels:
+    in_time: Within twelve years
+    time_barred: More than twelve years
+    injunction_no_limit: A decree for perpetual injunction (no limit applies)
+    cannot_tell: The decree date or its enforceability date is not in the record
+  inputs: [decree, execution_petition, calculator_output]
+  calculator: limitation
+  law: ["Limitation Act 1963 Schedule art. 136"]
+  labels_from: [rule, gold]
+  evidence: required
+  tier: court_admin
+
+- id: EXE.TYP.01
+  name: decree_kind
+  type: choice
+  question: What kind of decree is being executed?
+  labels:
+    money: Payment of money
+    possession_immovable: Possession of immovable property
+    movable_property: Delivery of movable property
+    injunction: Injunction
+    specific_performance: Specific performance
+    partition: Partition
+    other: Another kind
+    cannot_tell: The decree is not on record
+  inputs: [decree]
+  law: ["CPC Order XXI"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
+
+- id: EXE.SAT.01
+  name: decree_satisfaction_recorded
+  type: choice
+  question: Does the record show the decree has been satisfied?
+  labels:
+    fully_satisfied: Full satisfaction is recorded or certified
+    partly_satisfied: Part payment or part delivery is recorded
+    not_satisfied: No satisfaction on record
+    cannot_tell: The record does not show
+  inputs: [execution_order_sheet, payment_records]
+  law: ["CPC Order XXI rules 1, 2"]
+  labels_from: [cis, teacher, gold]
+  evidence: required
+  tier: court_admin
