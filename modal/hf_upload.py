@@ -1,6 +1,6 @@
 """Upload Manu-S1 (the merged v1 model on the Modal volume) with its card and notices to Hugging Face.
 
-  HF_TOKEN=... modal run modal/hf_upload.py --repo sankhya-ai-labs/manu-s1-4b [--public]
+  HF_TOKEN=... modal run modal/hf_upload.py --repo AshishDwi99/manu-s1-4b [--public]
 
 The weights go from the Modal volume straight to Hugging Face; they never pass through the local machine. The
 token travels only as a Modal secret built from the local process environment. Private unless --public.
