@@ -79,7 +79,7 @@ fitted on the development set and stored in `jevk5_config.json`.
 
 ```bash
 pip install git+https://github.com/allebee/jevk5
-jevk5-serve --model AshishDwi99/manu-s1-4b --port 8090   # TypeSafe-style POST /v1/systemone
+jevk5-serve --model sankhya-aI/manu-s1-4b --port 8090   # TypeSafe-style POST /v1/systemone
 ```
 
 About 9 GB in bf16. English records only; up to 16 options per pass.
